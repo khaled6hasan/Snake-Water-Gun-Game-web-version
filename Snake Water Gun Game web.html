@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Water Gun Game</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to right, #e0f7fa, #80deea);
+            text-align: center;
+            padding: 30px;
+        }
+        h1 {
+            color: #006064;
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+        button {
+            margin: 10px;
+            padding: 12px 25px;
+            font-size: 18px;
+            border: none;
+            border-radius: 10px;
+            background-color: #00796b;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s;
+        }
+        button:hover {
+            background-color: #004d40;
+            transform: scale(1.05);
+        }
+        #result, #score, #leaderboard {
+            margin-top: 20px;
+            font-size: 22px;
+            color: #004d40;
+        }
+        #game-over {
+            color: #d32f2f;
+            font-weight: bold;
+            font-size: 28px;
+            margin-top: 30px;
+        }
+        #restart {
+            background-color: #0288d1;
+            margin-top: 20px;
+        }
+        .emoji {
+            animation: bounce 0.5s;
+        }
+        @keyframes bounce {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+        @media (max-width: 600px) {
+            button {
+                font-size: 16px;
+                padding: 10px 20px;
+            }
+            h1 {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>🐍 Snake Water Gun Game 🔫</h1>
+    <p>Choose your move:</p>
+    <button onclick="playGame('snake')">Snake 🐍</button>
+    <button onclick="playGame('water')">Water 💧</button>
+    <button onclick="playGame('gun')">Gun 🔫</button>
+
+    <div id="result" class="emoji"></div>
+    <div id="score"></div>
+    <div id="leaderboard"></div>
+    <div id="game-over"></div>
+    <button onclick="resetGame()" style="display:none" id="restart">🔁 Restart Game</button>
+
+    <audio id="winSound" src="https://www.soundjay.com/buttons/sounds/button-3.mp3"></audio>
+    <audio id="loseSound" src="https://www.soundjay.com/buttons/sounds/button-10.mp3"></audio>
+    <audio id="tieSound" src="https://www.soundjay.com/buttons/sounds/button-4.mp3"></audio>
+
+    <script>
+        let userScore = 0;
+        let computerScore = 0;
+        let round = 0;
+        const totalRounds = 10;
+
+        function playGame(userChoice) {
+            if (round >= totalRounds) return;
+
+            const choices = ['snake', 'water', 'gun'];
+            const emojis = { snake: '🐍', water: '💧', gun: '🔫' };
+            const computerChoice = choices[Math.floor(Math.random() * 3)];
+
+            let result = '';
+            let sound;
+
+            if (userChoice === computerChoice) {
+                result = `🤝 It's a tie! Both chose ${emojis[userChoice]}`;
+                sound = document.getElementById('tieSound');
+            } else if (
+                (userChoice === 'snake' && computerChoice === 'water') ||
+                (userChoice === 'water' && computerChoice === 'gun') ||
+                (userChoice === 'gun' && computerChoice === 'snake')
+            ) {
+                result = `✅ You win! ${emojis[userChoice]} beats ${emojis[computerChoice]}`;
+                userScore++;
+                sound = document.getElementById('winSound');
+            } else {
+                result = `❌ You lose! ${emojis[computerChoice]} beats ${emojis[userChoice]}`;
+                computerScore++;
+                sound = document.getElementById('loseSound');
+            }
+
+            round++;
+            document.getElementById('result').innerText = result;
+            document.getElementById('score').innerText = `🎯 Score - You: ${userScore}, Computer: ${computerScore} (Round ${round}/${totalRounds})`;
+            sound.play();
+
+            if (round === totalRounds) {
+                let finalResult = '';
+                if (userScore > computerScore) finalResult = '🎉 You won the game!';
+                else if (userScore < computerScore) finalResult = '💻 Computer won the game!';
+                else finalResult = "🤝 It's a draw!";
+                document.getElementById('game-over').innerText = finalResult;
+                document.getElementById('restart').style.display = 'inline-block';
+
+                // Save scores to localStorage
+                let gameHistory = JSON.parse(localStorage.getItem('gameHistory')) || [];
+                gameHistory.push({ userScore, computerScore });
+                localStorage.setItem('gameHistory', JSON.stringify(gameHistory));
+                updateLeaderboard(gameHistory);
+            }
+        }
+
+        function resetGame() {
+            userScore = 0;
+            computerScore = 0;
+            round = 0;
+            document.getElementById('result').innerText = '';
+            document.getElementById('score').innerText = '';
+            document.getElementById('game-over').innerText = '';
+            document.getElementById('restart').style.display = 'none';
+        }
+
+        function updateLeaderboard(history) {
+            let topScores = history.slice(-10).reverse();
+            let html = '<h3>🎖️ Leaderboard (Last 10 Games)</h3><ul>';
+            topScores.forEach((game, index) => {
+                html += `<li>Game ${history.length - index}: You - ${game.userScore}/10, Computer - ${game.computerScore}/10</li>`;
+            });
+            html += '</ul>';
+            document.getElementById('leaderboard').innerHTML = html;
+        }
+
+        window.onload = function() {
+            let gameHistory = JSON.parse(localStorage.getItem('gameHistory')) || [];
+            if (gameHistory.length > 0) {
+                updateLeaderboard(gameHistory);
+                console.log('Previous Game Results:', gameHistory);
+            }
+        };
+    </script>
+</body>
+</html>
