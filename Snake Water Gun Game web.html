@@ -147,10 +147,10 @@
         }
 
         function updateLeaderboard(history) {
-            let topScores = history.slice(-10).reverse();
-            let html = '<h3>🎖️ Leaderboard (Last 10 Games)</h3><ul>';
+            let topScores = history.slice(-10);
+            let html = '<h3>🎖️ Leaderboard (last 10-round games result)</h3><ul>';
             topScores.forEach((game, index) => {
-                html += `<li>Game ${history.length - index}: You - ${game.userScore}/10, Computer - ${game.computerScore}/10</li>`;
+                html += `<li>Game ${index + 1}: You - ${game.userScore}/10, Computer - ${game.computerScore}/10</li>`;
             });
             html += '</ul>';
             document.getElementById('leaderboard').innerHTML = html;
